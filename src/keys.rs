@@ -1,5 +1,5 @@
 use cosmwasm_std::{storage_keys::namespace_with_key, Addr};
-use cosmwasm_std::{Int128, Int64, Uint128, Uint64};
+use cosmwasm_std::{Int128, Int256, Int512, Int64, Uint128, Uint256, Uint512, Uint64};
 
 use crate::de::KeyDeserialize;
 use crate::int_key::IntKey;
@@ -12,6 +12,8 @@ pub enum Key<'a> {
     Val32([u8; 4]),
     Val64([u8; 8]),
     Val128([u8; 16]),
+    Val256([u8; 32]),
+    Val512([u8; 64]),
 }
 
 impl AsRef<[u8]> for Key<'_> {
@@ -23,6 +25,8 @@ impl AsRef<[u8]> for Key<'_> {
             Key::Val32(v) => v,
             Key::Val64(v) => v,
             Key::Val128(v) => v,
+            Key::Val256(v) => v,
+            Key::Val512(v) => v,
         }
     }
 }
@@ -305,7 +309,7 @@ macro_rules! integer_key {
     }
 }
 
-integer_key!(for i8, Val8, u8, Val8, i16, Val16, u16, Val16, i32, Val32, u32, Val32, i64, Val64, u64, Val64, i128, Val128, u128, Val128, Uint64, Val64, Uint128, Val128, Int64, Val64, Int128, Val128);
+integer_key!(for i8, Val8, u8, Val8, i16, Val16, u16, Val16, i32, Val32, u32, Val32, i64, Val64, u64, Val64, i128, Val128, u128, Val128, Uint64, Val64, Uint128, Val128, Int64, Val64, Int128, Val128, Uint256, Val256, Uint512, Val512, Int256, Val256, Int512, Val512);
 macro_rules! integer_prefix {
     (for $($t:ty, $v:tt),+) => {
         $(impl<'a> Prefixer<'a> for $t {
@@ -316,11 +320,11 @@ macro_rules! integer_prefix {
     }
 }
 
-integer_prefix!(for i8, Val8, u8, Val8, i16, Val16, u16, Val16, i32, Val32, u32, Val32, i64, Val64, u64, Val64, i128, Val128, u128, Val128, Uint64, Val64, Uint128, Val128, Int64, Val64, Int128, Val128);
+integer_prefix!(for i8, Val8, u8, Val8, i16, Val16, u16, Val16, i32, Val32, u32, Val32, i64, Val64, u64, Val64, i128, Val128, u128, Val128, Uint64, Val64, Uint128, Val128, Int64, Val64, Int128, Val128, Uint256, Val256, Uint512, Val512, Int256, Val256, Int512, Val512);
 
 #[cfg(test)]
 mod test {
-    use cosmwasm_std::{Uint256, Uint512};
+    use cosmwasm_std::{Int256, Int512, Uint256, Uint512};
 
     use super::*;
 
@@ -419,6 +423,38 @@ mod test {
         let path = k.key();
         assert_eq!(1, path.len());
         assert_eq!((-4242i128).to_cw_bytes(), path[0].as_ref());
+    }
+
+    #[test]
+    fn std_uint256_key_works() {
+        let k = Uint256::from(4242u128);
+        let path = k.key();
+        assert_eq!(1, path.len());
+        assert_eq!(k.to_cw_bytes(), path[0].as_ref());
+    }
+
+    #[test]
+    fn std_uint512_key_works() {
+        let k = Uint512::from(4242u128);
+        let path = k.key();
+        assert_eq!(1, path.len());
+        assert_eq!(k.to_cw_bytes(), path[0].as_ref());
+    }
+
+    #[test]
+    fn std_int256_key_works() {
+        let k = Int256::from(-4242i128);
+        let path = k.key();
+        assert_eq!(1, path.len());
+        assert_eq!(k.to_cw_bytes(), path[0].as_ref());
+    }
+
+    #[test]
+    fn std_int512_key_works() {
+        let k = Int512::from(-4242i128);
+        let path = k.key();
+        assert_eq!(1, path.len());
+        assert_eq!(k.to_cw_bytes(), path[0].as_ref());
     }
 
     #[test]

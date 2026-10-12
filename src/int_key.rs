@@ -1,13 +1,13 @@
 use std::mem;
 
-use cosmwasm_std::{Int128, Int64, Uint128, Uint64};
+use cosmwasm_std::{Int128, Int256, Int512, Int64, Uint128, Uint256, Uint512, Uint64};
 
 /// Our int keys are simply the big-endian representation bytes for unsigned ints,
 /// but "sign-flipped" (xored msb) big-endian bytes for signed ints.
 ///
 /// So that the representation of signed integers is in the right lexicographical order.
 pub trait IntKey: Sized + Copy {
-    type Buf: AsRef<[u8]> + AsMut<[u8]> + Into<Vec<u8>> + Default;
+    type Buf: AsRef<[u8]> + AsMut<[u8]> + Into<Vec<u8>>;
 
     fn to_cw_bytes(&self) -> Self::Buf;
     fn from_cw_bytes(bytes: Self::Buf) -> Self;
@@ -94,6 +94,71 @@ macro_rules! cw_int_std_keys {
 }
 
 cw_int_std_keys!(for Int64, Int128);
+
+impl IntKey for Uint256 {
+    type Buf = [u8; 32];
+
+    #[inline]
+    fn to_cw_bytes(&self) -> Self::Buf {
+        self.to_be_bytes()
+    }
+
+    #[inline]
+    fn from_cw_bytes(bytes: Self::Buf) -> Self {
+        Self::from_be_bytes(bytes)
+    }
+}
+
+impl IntKey for Uint512 {
+    type Buf = [u8; 64];
+
+    #[inline]
+    fn to_cw_bytes(&self) -> Self::Buf {
+        self.to_be_bytes()
+    }
+
+    #[inline]
+    fn from_cw_bytes(bytes: Self::Buf) -> Self {
+        Self::from_be_bytes(bytes)
+    }
+}
+
+impl IntKey for Int256 {
+    type Buf = [u8; 32];
+
+    #[inline]
+    fn to_cw_bytes(&self) -> Self::Buf {
+        let mut bytes = self.to_be_bytes();
+        bytes[0] ^= 0x80;
+        bytes
+    }
+
+    #[inline]
+    fn from_cw_bytes(bytes: Self::Buf) -> Self {
+        let mut bytes = bytes;
+        bytes[0] ^= 0x80;
+        Self::from_be_bytes(bytes)
+    }
+}
+
+impl IntKey for Int512 {
+    type Buf = [u8; 64];
+
+    #[inline]
+    fn to_cw_bytes(&self) -> Self::Buf {
+        let mut bytes = self.to_be_bytes();
+        bytes[0] ^= 0x80;
+        bytes
+    }
+
+    #[inline]
+    fn from_cw_bytes(bytes: Self::Buf) -> Self {
+        let mut bytes = bytes;
+        bytes[0] ^= 0x80;
+        Self::from_be_bytes(bytes)
+    }
+}
+
 
 #[cfg(test)]
 mod test {

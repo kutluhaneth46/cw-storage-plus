@@ -6,6 +6,12 @@ This guide lists API changes between `cw-storage-plus` major releases.
 
 No breaking changes in API. Upgrade to `cosmwasm-std` v3.0.0.
 
+## Upcoming (PrimaryKey for 256/512-bit integers)
+
+`Key` gains `Val256` / `Val512` variants so `Uint256`, `Uint512`, `Int256`, and
+`Int512` can be used as map keys. Exhaustive matches on `Key` must handle the
+new variants.
+
 ## v1.0.x -> v2.0.0
 
 ### Breaking Issues / PRs
